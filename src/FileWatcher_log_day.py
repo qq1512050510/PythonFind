@@ -25,7 +25,7 @@ def init_log():
     log = logging.getLogger("simple_exmaple")
     log.setLevel(logging.INFO)
     #如果有日志的话 每天记录 最长备份周期为365天
-    ch = TimedRotatingFileHandler("FileWatch.log",when="D",backupCount=365,encoding="utf-8")
+    ch = TimedRotatingFileHandler("./log/FileWatch.log",when="D",backupCount=365,encoding="utf-8")
     ch.setLevel(logging.DEBUG)
     fs = logging.StreamHandler()
     formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
