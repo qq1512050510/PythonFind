@@ -11,21 +11,26 @@ import DataUtil
 from logging.handlers import TimedRotatingFileHandler
 from pyinotify import WatchManager, Notifier, ProcessEvent, EventsCodes
 import threading
+
+
 def heartBeat(log):
-    log.info("beat 时间："+time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
-def timeTaks(time: int,time_event,log):
+    log.info("beat 时间：" + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+
+
+def timeTaks(time: int, time_event, log):
     time_event(log)
     global timer
-    timer = threading.Timer(time,timeTaks,[time,time_event,log])
+    timer = threading.Timer(time, timeTaks, [time, time_event, log])
     timer.start()
+
 
 # 生成log文件
 def init_log():
     
     log = logging.getLogger("simple_exmaple")
     log.setLevel(logging.INFO)
-    #如果有日志的话 每天记录 最长备份周期为365天
-    ch = TimedRotatingFileHandler("./log/FileWatch.log",when="D",backupCount=365,encoding="utf-8")
+    # 如果有日志的话 每天记录 最长备份周期为365天
+    ch = TimedRotatingFileHandler("./log/FileWatch.log", when="D", backupCount=365, encoding="utf-8")
     ch.setLevel(logging.DEBUG)
     fs = logging.StreamHandler()
     formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -33,20 +38,21 @@ def init_log():
     log.addHandler(ch)
     log.addHandler(fs)
     
-    #log.debug("debug message")
-    log.info("log init 时间：%s",time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
-    #log.warning("warn message")
-    #log.error("error message")
-    #log.critical("critical message")
+    # log.debug("debug message")
+    log.info("log init 时间：%s", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+    # log.warning("warn message")
+    # log.error("error message")
+    # log.critical("critical message")
     return log;
 
+
 log = init_log()
-#定时启动任务
-#timeTaks(6,heartBeat)
-timeTaks(60,heartBeat,log)
-#timeTaks(60*60*24,init_log)
-#timer = threading.Timer(1,heartBeat)
-#timer.start()
+# 定时启动任务
+# timeTaks(6,heartBeat)
+timeTaks(60, heartBeat, log)
+# timeTaks(60*60*24,init_log)
+# timer = threading.Timer(1,heartBeat)
+# timer.start()
 # 设置日志输出两个handle，屏幕和文件
 '''
 log = logging.getLogger('file watch ---')
@@ -91,7 +97,7 @@ def read_json_from_file(file_path):
                     result = json.loads(s)
                     log.info("josn loads的结果：%s", result);
                     # 处理数据
-                    for i in result:
+                    for i in result["product_list"]["List"]:
                         data_process(i)
             except Exception as e:
                 log.error("异常,提示信息：%s", e)
@@ -107,31 +113,39 @@ def data_process(data: dict):
     处理从json中读取到的数据
     :param data:
     """
-    file_path = data["file_path"]
+    file_path = data["Directory"]
+    name = data["Product"]
+    archiveDir = DataUtil.get_archieve_dir()[0]["archiveDir"]
+    log.info("archieveDir: %s", archiveDir)
+    archieveFile = archiveDir+"/"+name
     # 从文件名称获取文件信息
     name_info = DataUtil.parse_name(file_path)
-    #获取卫星和载荷信息
-    if name_info.strip()!="" and len(name_info)>=2:
-        weixing_info = name_info[0]
-        zaihe_info = name_info[1]
+    
+    # 获取卫星和载荷信息
+    #if name_info.strip() != "" and len(name_info) >= 2:
+    #    weixing_info = name_info[0]
+    #    zaihe_info = name_info[1]
     # 打开文件检查
     checknum = DataUtil.check_file(file_path)
+    # 拷贝文件
+    DataUtil.copy_file(file_path, archieveFile)
+    
     # 构造保存数据库的dict
     result = {}
     result['type'] = '1'
-    result['name'] = file_path
+    result['name'] = name
     result['suffix'] = 'fits'
     result['sourcepath'] = file_path
     result['checknum'] = checknum
+    result['archivepath'] = archieveFile
     result['status'] = '1'
     # 保存数据到数据库
     DataUtil.save_data(result)
-    # 拷贝文件
-    DataUtil.copy_file(file_path, file_path)
+    
     # 更新数据
     DataUtil.update_data()
     # 调用远程接口
-    DataUtil.notice(file_path)
+    # DataUtil.notice(file_path)
 
 
 class EventHandler(ProcessEvent):

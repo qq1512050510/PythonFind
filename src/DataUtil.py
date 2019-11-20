@@ -16,7 +16,7 @@ def save_data(m: dict):
     :rtype: object
     """
     sql = "INSERT INTO `g_divcoverdata` (`type`, `name`, `suffix`, `sourcepath`, `checknum`, `status`, `dtime`) VALUES ( '{}', '{}', '{}', '{}',  '{}', '{}', '{}')".format(m['type'], m['name'], m['suffix'], m['sourcepath'], m['checknum'], m['status'], time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
-    print("执行SQL：",sql)
+    print("执行SQL：", sql)
     with DBClient() as db:
         db.execute(sql)
 
@@ -36,6 +36,13 @@ def get_data():
     with DBClient() as db:
         db.execute(sql)
         return db.fetchall()
+    
+    
+def get_archieve_dir():
+    sql = "select * from g_parameter"
+    with DBClient() as db:
+        db.execute(sql)
+        return db.fetchall()
 
 
 def parse_name(filepath: str):
@@ -45,7 +52,7 @@ def parse_name(filepath: str):
     """
     name_info = "";
     filepath = str(filepath)
-    if filepath.strip()!="" and len(filepath.rsplit("/", 1))!=1:
+    if filepath.strip() != "" and len(filepath.rsplit("/", 1)) != 1:
         filename = filepath.rsplit("/", 1)[1]
         name_info = filename.split("_")
     return name_info
@@ -69,8 +76,8 @@ def check_file(file_path):
     except Exception as e:
         print("文件打开失败:", file_path, e)
         return 0
-    #finally:
-        #f.close()
+    # finally:
+        # f.close()
     return 1
 
 
@@ -80,6 +87,8 @@ def copy_file(from_path, to_path):
     :param from_path:
     :param to_path:
     """
+    print(from_path)
+    print(to_path)
     user = "",
     ip = ""
     password = ""
@@ -93,7 +102,7 @@ def copy_file(from_path, to_path):
           expect \r ;
           expect eof
           "
-        """.format(username=user, password=password, host=ip, remotedest=to_path, port=port)
+        """.format(username=user, password=password, host=ip, from_path=from_path, to_path=to_path, port=port)
     SCP_CMD = SCP_CMD_BASE.format(localsource=from_path)
     print("execute SCP_CMD: ", SCP_CMD)
     p = subprocess.Popen(SCP_CMD, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
