@@ -15,7 +15,7 @@ def save_data(m: dict):
     保存文件到数据库，
     :rtype: object
     """
-    sql = "INSERT INTO `g_divcoverdata` (`type`, `name`, `suffix`, `sourcepath`, `checknum`, `status`, `dtime`) VALUES ( '{}', '{}', '{}', '{}',  '{}', '{}', '{}')".format(m['type'], m['name'], m['suffix'], m['sourcepath'], m['checknum'], m['status'], time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+    sql = "INSERT INTO `g_divcoverdata` (`type`, `name`, `suffix`, `sourcepath`, `checknum`, `status`, `dtime`,`archivepath`) VALUES ( '{}', '{}', '{}', '{}',  '{}', '{}', '{}','{}')".format(m['type'], m['name'], m['suffix'], m['sourcepath'], m['checknum'], m['status'], time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), m['status'])
     print("执行SQL：", sql)
     with DBClient() as db:
         db.execute(sql)
@@ -76,6 +76,7 @@ def check_file(file_path):
     except Exception as e:
         print("文件打开失败:", file_path, e)
         return 0
+    print("文件打开成功：", file_path)
     # finally:
         # f.close()
     return 1
